@@ -1,0 +1,10 @@
+{
+  "name": "hello-migration",
+  "private": true,
+  "version": "0.0.0",
+  "author": "Noop Inc <hello@noop.dev>",
+  "type": "module",
+  "dependencies": {
+    "mysql2": "^3.9.1"
+  }
+}
