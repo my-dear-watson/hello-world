@@ -1,0 +1,67 @@
+name: Hello World
+components:
+  - name: Api
+    type: service
+    root: api
+    image: node:20-alpine
+    build:
+      steps:
+          - copy: package.json
+          - copy: package-lock.json
+          - run: npm ci
+          - copy: .
+    runtime:
+      command: node index.js
+      resources:
+        - HelloDatabase
+      variables:
+        DB_URL:
+          $resources: HelloDatabase.url
+  - name: Frontend
+    type: static
+    root: frontend
+    image: node:20-alpine
+    build:
+      steps:
+        - copy: package.json
+        - copy: package-lock.json
+        - run: npm ci
+        - copy: .
+        - run: npm run build
+        - directory: dist/
+    hosting:
+      index: index.html
+      spa: true
+  - name: DatabaseMigration
+    type: task
+    root: migration
+    image: node:20-alpine
+    build:
+      steps:
+          - copy: package.json
+          - copy: package-lock.json
+          - run: npm ci
+          - copy: index.js
+    runtime:
+      command: node index.js
+      resources:
+        - HelloDatabase
+      variables:
+        DB_URL:
+          $resources: HelloDatabase.url
+
+resources:
+  - name: HelloDatabase
+    type: mysql
+
+routes:
+  - pattern: /api/**
+    target:
+      component: Api
+  - target:
+      component: Frontend
+
+lifecycles:
+  - event: BeforeServices
+    components: 
+      - DatabaseMigration
